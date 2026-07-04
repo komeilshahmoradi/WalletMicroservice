@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Wallet.Api/Wallet.Api.csproj" />
+    <Project Path="src/Wallet.Application/Wallet.Application.csproj" />
+    <Project Path="src/Wallet.Domain/Wallet.Domain.csproj" />
+    <Project Path="src/Wallet.Infrastructure/Wallet.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Wallet.IntegrationTests/Wallet.IntegrationTests.csproj" />
+    <Project Path="tests/Wallet.UnitTests/Wallet.UnitTests.csproj" />
+  </Folder>
+</Solution>
