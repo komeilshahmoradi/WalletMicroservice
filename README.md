@@ -1,6 +1,9 @@
-# Wallet
+# Wallet Microservice
+![Placeholder](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWmuSKheLmt0H3WQvkBxW1PADwxA7EsBKeoF9R7tPNxHQUpiWsWgX9AUw&s=10)
 
-Generated microservice solution using .slnx.
+Wallet microservice with asp.net core 10, Sql Server and using Shared building blocks for DDD, Clean Architecture, CQRS, EF Core, and common abstractions.
+
+**The Shared building blocks is a private repository, so you need to ask me for access permission.**
 
 ## Structure
 
