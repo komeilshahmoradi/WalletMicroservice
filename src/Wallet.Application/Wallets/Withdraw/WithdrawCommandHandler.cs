@@ -10,7 +10,7 @@ using Wallet.Domain.Wallets.Repositories;
 
 namespace Wallet.Application.Wallets.Withdraw;
 
-public sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, Guid>
+internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, Guid>
 {
   private readonly IWalletRepository _walletRepository;
   private readonly IUnitOfWork _unitOfWork;

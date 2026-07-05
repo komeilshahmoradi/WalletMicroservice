@@ -13,7 +13,7 @@ using Wallet.Domain.Wallets.Repositories;
 
 namespace Wallet.Application.Transfers.Create;
 
-public sealed class CreateTransferCommandHandler : ICommandHandler<CreateTransferCommand, Guid>
+internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTransferCommand, Guid>
 {
   private readonly IWalletRepository _walletRepository;
   private readonly ITransferRepository _transferRepository;

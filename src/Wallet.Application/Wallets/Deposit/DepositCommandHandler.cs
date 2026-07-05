@@ -10,7 +10,7 @@ using Wallet.Domain.Wallets.Repositories;
 
 namespace Wallet.Application.Wallets.Deposit;
 
-public sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Guid>
+internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Guid>
 {
   private readonly IWalletRepository _walletRepository;
   private readonly IUnitOfWork _unitOfWork;

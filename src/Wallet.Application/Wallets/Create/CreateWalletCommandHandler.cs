@@ -9,7 +9,7 @@ using Wallet.Domain.Wallets.Repositories;
 
 namespace Wallet.Application.Wallets.Create;
 
-public sealed class CreateWalletCommandHandler : ICommandHandler<CreateWalletCommand, Guid>
+internal sealed class CreateWalletCommandHandler : ICommandHandler<CreateWalletCommand, Guid>
 {
   private readonly IWalletRepository _walletRepository;
   private readonly IUnitOfWork _unitOfWork;

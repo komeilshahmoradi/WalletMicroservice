@@ -4,7 +4,7 @@ using Wallet.Domain.Wallets.Repositories;
 
 namespace Wallet.Application.Wallets.GetById;
 
-public sealed class GetWalletByIdQueryHandler : IQueryHandler<GetWalletByIdQuery, GetWalletByIdDto>
+internal sealed class GetWalletByIdQueryHandler : IQueryHandler<GetWalletByIdQuery, GetWalletByIdDto>
 {
   private readonly IWalletRepository _walletRepository;
 
