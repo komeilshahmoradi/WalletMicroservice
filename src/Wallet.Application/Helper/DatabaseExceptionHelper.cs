@@ -1,6 +1,5 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Wallet.Application.Helper;
 
@@ -11,12 +10,6 @@ public static class DatabaseExceptionHelper
     if (exception.InnerException is null)
     {
       return false;
-    }
-
-    // PostgreSQL
-    if (exception.InnerException is PostgresException postgresException)
-    {
-      return postgresException.SqlState == PostgresErrorCodes.UniqueViolation;
     }
 
     // SQL Server
@@ -36,13 +29,6 @@ public static class DatabaseExceptionHelper
     if (exception.InnerException is null)
     {
       return false;
-    }
-
-    // PostgreSQL
-    if (exception.InnerException is PostgresException postgresException)
-    {
-      return postgresException.SqlState == PostgresErrorCodes.UniqueViolation &&
-             string.Equals(postgresException.ConstraintName, constraintName, StringComparison.Ordinal);
     }
 
     // SQL Server
