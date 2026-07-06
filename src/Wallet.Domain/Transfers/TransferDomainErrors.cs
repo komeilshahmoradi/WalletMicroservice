@@ -7,4 +7,5 @@ public sealed class TransferDomainErrors
   public const string TransferAlreadyCompleted = "Transfer is already completed.";
   public const string TransferAlreadyFailed = "Transfer is already failed.";
   public const string TransferCannotBeCancelled = "Only pending transfers can be cancelled.";
+  public const string ExchangeRateMustBeEqualOrAboveZero = "Exchange rate must be equal or above zero.";
 }

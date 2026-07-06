@@ -43,6 +43,10 @@ internal sealed class TransferConfiguration : IEntityTypeConfiguration<Transfer>
           .IsRequired();
     });
 
+    builder.Property(transfer => transfer.ExchangeRate)
+      .HasColumnType("decimal(18,2)")
+      .IsRequired();
+
     builder.Property(transfer => transfer.Status)
         .HasConversion(
             status => status.Id,

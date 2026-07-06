@@ -41,6 +41,9 @@ namespace Wallet.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("binary(16)");
 
+                    b.Property<decimal>("ExchangeRate")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTimeOffset?>("FailedOnUtc")
                         .HasColumnType("datetimeoffset");
 
