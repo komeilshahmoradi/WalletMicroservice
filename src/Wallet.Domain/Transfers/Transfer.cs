@@ -11,6 +11,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
   public Guid SourceWalletId { get; private set; }
   public Guid DestinationWalletId { get; private set; }
   public Money Money { get; private set; }
+  public decimal ExchangeRate { get; set; }
   public TransferStatus Status { get; private set; }
   public string? Description { get; private set; }
   public DateTimeOffset CreatedOnUtc { get; private set; }
@@ -30,6 +31,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
       Guid sourceWalletId,
       Guid destinationWalletId,
       Money money,
+      decimal exchangeRate,
       string? description)
       : base(id)
   {
@@ -51,10 +53,14 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
     if (!money.IsPositive())
       throw new AmountMustBePositiveDomainException(TransferDomainErrors.AmountMustBePositive);
 
+    if (exchangeRate < 0)
+      throw new ExchangeRateMustBeEqualOrAboveZeroDomainException(TransferDomainErrors.ExchangeRateMustBeEqualOrAboveZero);
+
     UserId = userId;
     SourceWalletId = sourceWalletId;
     DestinationWalletId = destinationWalletId;
     Money = money;
+    ExchangeRate = exchangeRate;
     Status = TransferStatus.Pending;
     Description = description;
     CreatedOnUtc = DateTimeOffset.UtcNow;
@@ -65,6 +71,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
       Guid sourceWalletId,
       Guid destinationWalletId,
       Money money,
+      decimal exchangeRate,
       string? description = null)
   {
     return new Transfer(
@@ -73,6 +80,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
         sourceWalletId,
         destinationWalletId,
         money,
+        exchangeRate,
         description);
   }
 
@@ -101,7 +109,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
         operationId,
         $"Transfer out {Money.Amount} {Money.Currency} to wallet {DestinationWalletId}.OperationId: {operationId} | Description: {Description}");
 
-    var destinationMoney = Money.Of(Money.Amount, destinationWallet.Currency);
+    var destinationMoney = ApplyExchangeRate(sourceWallet.Currency, destinationWallet.Currency, SourceWalletId, DestinationWalletId);
 
     destinationWallet.ApplyTransferIn(
         destinationMoney,
@@ -111,6 +119,28 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
 
     Status = TransferStatus.Completed;
     CompletedOnUtc = DateTimeOffset.UtcNow;
+  }
+
+  private Money ApplyExchangeRate(
+    Currency sourceCurrency,
+    Currency destinationCurrency,
+    Guid sourceUserId,
+    Guid destinationUserId)
+  {
+    if (sourceCurrency == destinationCurrency && sourceUserId != destinationUserId)
+    {
+      ExchangeRate = 0;
+      return Money;
+    }
+
+    if (destinationCurrency == Currency.Rial)
+    {
+      return Money.Of(Money.Amount * ExchangeRate, destinationCurrency);
+    }
+    else
+    {
+      return Money.Of(Money.Amount / ExchangeRate, destinationCurrency);
+    }
   }
 
   public void Fail(string reason)

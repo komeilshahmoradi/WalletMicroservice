@@ -32,6 +32,15 @@ internal sealed class WalletRepository : EfRepository<Domain.Wallets.Wallet, Gui
     return result;
   }
 
+  public async Task<Currency> GetCurrencyById(Guid id, CancellationToken cancellationToken = default)
+  {
+    var result = await _dbContext.Set<Domain.Wallets.Wallet>()
+      .Select(x => new { x.Id, x.Currency })
+      .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    return result!.Currency;
+  }
+
   public async Task<WalletTransaction?> GetTransactionByWalletIdAndOperationIdAsync(
     Guid walletId,
     Guid idempotencyKey,

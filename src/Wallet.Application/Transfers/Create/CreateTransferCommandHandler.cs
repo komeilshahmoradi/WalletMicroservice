@@ -3,6 +3,7 @@ using KO.BuildingBlocks.Domain.Exceptions;
 using KO.BuildingBlocks.Domain.Repositories;
 using KO.BuildingBlocks.Domain.Results;
 using Microsoft.EntityFrameworkCore;
+using Wallet.Application.ExternalContractors;
 using Wallet.Application.Helper;
 using Wallet.Application.Wallets;
 using Wallet.Domain.Shared;
@@ -18,15 +19,18 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
   private readonly IWalletRepository _walletRepository;
   private readonly ITransferRepository _transferRepository;
   private readonly IUnitOfWork _unitOfWork;
+  private readonly IExchangeRateProvider _exchangeRateProvider;
 
   public CreateTransferCommandHandler(
       IWalletRepository walletRepository,
       ITransferRepository transferRepository,
-      IUnitOfWork unitOfWork)
+      IUnitOfWork unitOfWork,
+      IExchangeRateProvider exchangeRateProvider)
   {
     _walletRepository = walletRepository;
     _transferRepository = transferRepository;
     _unitOfWork = unitOfWork;
+    _exchangeRateProvider = exchangeRateProvider;
   }
 
   public async Task<Result<Guid>> Handle(CreateTransferCommand request, CancellationToken cancellationToken)
@@ -40,6 +44,10 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
     {
       return GetTransferStatus(existingTransfer, request);
     }
+
+    var destinationCurrency = await _walletRepository.GetCurrencyById(request.DestinationWalletId, cancellationToken);
+    var exchangeRate = await _exchangeRateProvider.GetExchangeRateAsync(
+      Currency.FromName(request.CurrencyCode), destinationCurrency, cancellationToken);
 
     await _unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
     try
@@ -64,6 +72,7 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
           request.SourceWalletId,
           request.DestinationWalletId,
           money,
+          exchangeRate,
           request.Description);
 
       transfer.Complete(sourceWallet, destinationWallet, request.IdempotencyKey);
