@@ -1,7 +1,7 @@
+using Ardalis.Result;
 using KO.BuildingBlocks.Application.Abstraction.Messaging;
 using KO.BuildingBlocks.Domain.Exceptions;
 using KO.BuildingBlocks.Domain.Repositories;
-using KO.BuildingBlocks.Domain.Results;
 using Microsoft.EntityFrameworkCore;
 using Wallet.Application.ExternalContractors;
 using Wallet.Application.Helper;
@@ -55,13 +55,13 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
       var sourceWallet = await _walletRepository.GetByIdAsync(request.SourceWalletId, cancellationToken);
       if (sourceWallet is null)
       {
-        return Result.Failure<Guid>(TransfersErrors.SourceWalletNotFound);
+        return Result<Guid>.NotFound(TransfersErrors.SourceWalletNotFound.Message);
       }
 
       var destinationWallet = await _walletRepository.GetByIdAsync(request.DestinationWalletId, cancellationToken);
       if (destinationWallet is null)
       {
-        return Result.Failure<Guid>(TransfersErrors.DestinationWalletNotFound);
+        return Result<Guid>.NotFound(TransfersErrors.DestinationWalletNotFound.Message);
       }
 
       var currency = Currency.FromName(request.CurrencyCode);
@@ -86,12 +86,12 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
     catch (DomainException ex)
     {
       await _unitOfWork.RollbackTransactionAsync();
-      return Result.Failure<Guid>(ex);
+      return Result<Guid>.Error(ex.Message);
     }
     catch (DbUpdateConcurrencyException)
     {
       await _unitOfWork.RollbackTransactionAsync();
-      return Result.Failure<Guid>(TransfersErrors.ConcurrencyConflict);
+      return Result.CriticalError(TransfersErrors.ConcurrencyConflict.Message);
     }
     catch (DbUpdateException ex) when (DatabaseExceptionHelper.IsUniqueViolation(ex, "pk_transfers"))
     {
@@ -104,7 +104,7 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
 
       if (existingTransfer is null)
       {
-        return Result.Failure<Guid>(TransfersErrors.IdempotencyStateNotFound);
+        return Result.NotFound(TransfersErrors.IdempotencyStateNotFound.Message);
       }
 
       return GetTransferStatus(existingTransfer, request);
@@ -121,7 +121,7 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
 
       if (existingSourceTransaction is null && existingSourceTransaction is null)
       {
-        return Result.Failure<Guid>(WalletsErrors.IdempotencyStateNotFound);
+        return Result.NotFound(WalletsErrors.IdempotencyStateNotFound.Message);
       }
 
       return GetWalletTransactionStatus(existingSourceTransaction, existingDestinationTransaction, request);
@@ -148,25 +148,25 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
         || sourceWalletTransaction.Type != WalletTransactionType.Deposit
         || sourceWalletTransaction.Money != money))
       {
-        return Result.Failure<Guid>(WalletsErrors.IdempotencyKeyAlreadyUsed);
+        return Result.Error(WalletsErrors.IdempotencyKeyAlreadyUsed.Message);
       }
 
       return sourceWalletTransaction.Status switch
       {
         var status when status.Equals(WalletTransactionStatus.Completed) =>
-            Result.Success(sourceWalletTransaction.Id),
+            Result<Guid>.Success(sourceWalletTransaction.Id),
 
         var status when status.Equals(WalletTransactionStatus.Pending) =>
-            Result.Failure<Guid>(WalletsErrors.AlreadyDepositProcessing),
+            Result.Error(WalletsErrors.AlreadyDepositProcessing.Message),
 
         var status when status.Equals(WalletTransactionStatus.Failed) =>
-            Result.Failure<Guid>(WalletsErrors.AlreadyDepositFailed),
+            Result.Error(WalletsErrors.AlreadyDepositFailed.Message),
 
         var status when status.Equals(WalletTransactionStatus.Reversed) =>
-            Result.Failure<Guid>(WalletsErrors.AlreadyDepositReversed),
+            Result.Error(WalletsErrors.AlreadyDepositReversed.Message),
 
         _ =>
-            Result.Failure<Guid>(WalletsErrors.InvalidStatus)
+            Result.Error(WalletsErrors.InvalidStatus.Message)
       };
     }
 
@@ -177,7 +177,7 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
         || destinationWalletTransaction.Type != WalletTransactionType.Deposit
         || destinationWalletTransaction.Money != money))
       {
-        return Result.Failure<Guid>(WalletsErrors.IdempotencyKeyAlreadyUsed);
+        return Result.Error(WalletsErrors.IdempotencyKeyAlreadyUsed.Message);
       }
 
       return destinationWalletTransaction.Status switch
@@ -186,20 +186,20 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
             Result.Success(destinationWalletTransaction.Id),
 
         var status when status.Equals(WalletTransactionStatus.Pending) =>
-            Result.Failure<Guid>(WalletsErrors.AlreadyDepositProcessing),
+            Result.Error(WalletsErrors.AlreadyDepositProcessing.Message),
 
         var status when status.Equals(WalletTransactionStatus.Failed) =>
-            Result.Failure<Guid>(WalletsErrors.AlreadyDepositFailed),
+            Result.Error(WalletsErrors.AlreadyDepositFailed.Message),
 
         var status when status.Equals(WalletTransactionStatus.Reversed) =>
-            Result.Failure<Guid>(WalletsErrors.AlreadyDepositReversed),
+            Result.Error(WalletsErrors.AlreadyDepositReversed.Message),
 
         _ =>
-            Result.Failure<Guid>(WalletsErrors.InvalidStatus)
+            Result.Error(WalletsErrors.InvalidStatus.Message)
       };
     }
 
-    return Result.Failure<Guid>(WalletsErrors.InvalidStatus);
+    return Result.Error(WalletsErrors.InvalidStatus.Message);
   }
 
   private Result<Guid> GetTransferStatus(Transfer existingTransfer, CreateTransferCommand request)
@@ -211,7 +211,7 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
           existingTransfer.DestinationWalletId != request.DestinationWalletId ||
           existingTransfer.Money != money)
     {
-      return Result.Failure<Guid>(TransfersErrors.IdempotencyKeyAlreadyUsed);
+      return Result.Error(TransfersErrors.IdempotencyKeyAlreadyUsed.Message);
     }
 
     return existingTransfer.Status switch
@@ -220,16 +220,16 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
           Result.Success(existingTransfer.Id),
 
       var status when status.Equals(TransferStatus.Pending) =>
-          Result.Failure<Guid>(TransfersErrors.AlreadyProcessing),
+          Result.Error(TransfersErrors.AlreadyProcessing.Message),
 
       var status when status.Equals(TransferStatus.Failed) =>
-          Result.Failure<Guid>(TransfersErrors.AlreadyFailed),
+          Result.Error(TransfersErrors.AlreadyFailed.Message),
 
       var status when status.Equals(TransferStatus.Cancelled) =>
-          Result.Failure<Guid>(TransfersErrors.Cancelled),
+          Result.Error(TransfersErrors.Cancelled.Message),
 
       _ =>
-          Result.Failure<Guid>(TransfersErrors.InvalidStatus)
+          Result.Error(TransfersErrors.InvalidStatus.Message)
     };
   }
 }

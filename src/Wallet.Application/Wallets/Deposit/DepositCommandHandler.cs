@@ -1,3 +1,4 @@
+using Ardalis.Result;
 using KO.BuildingBlocks.Application.Abstraction.Messaging;
 using KO.BuildingBlocks.Domain.Exceptions;
 using KO.BuildingBlocks.Domain.Repositories;
@@ -30,7 +31,7 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
     var wallet = await _walletRepository.GetByIdAndUserIdAsync(request.WalletId, request.UserId, cancellationToken);
     if (wallet is null)
     {
-      return Result.Failure<Guid>(WalletsErrors.NotFound);
+      return Result.NotFound(WalletsErrors.NotFound.Message);
     }
 
     var existingWalletTransaction = await _walletRepository
@@ -57,11 +58,11 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
     }
     catch (DomainException ex)
     {
-      return Result.Failure<Guid>(ex);
+      return Result.Error(ex.Message);
     }
     catch (DbUpdateConcurrencyException)
     {
-      return Result.Failure<Guid>(WalletsErrors.ConcurrencyConflict);
+      return Result.CriticalError(WalletsErrors.ConcurrencyConflict.Message);
     }
     catch (DbUpdateException ex) when (DatabaseExceptionHelper.IsUniqueViolation(ex, "uq_wallet_transactions_wallet_id_operation_id"))
     {
@@ -70,7 +71,7 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
 
       if (existingWalletTransaction is null)
       {
-        return Result.Failure<Guid>(WalletsErrors.IdempotencyStateNotFound);
+        return Result.NotFound(WalletsErrors.IdempotencyStateNotFound.Message);
       }
 
       return GetWalletTransactionStatus(existingWalletTransaction, request);
@@ -87,7 +88,7 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
         || existingWalletTransaction.Type != WalletTransactionType.Deposit
         || existingWalletTransaction.Money != money)
     {
-      return Result.Failure<Guid>(WalletsErrors.IdempotencyKeyAlreadyUsed);
+      return Result.Error(WalletsErrors.IdempotencyKeyAlreadyUsed.Message);
     }
 
     return existingWalletTransaction.Status switch
@@ -96,16 +97,16 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
           Result.Success(existingWalletTransaction.Id),
 
       var status when status.Equals(WalletTransactionStatus.Pending) =>
-          Result.Failure<Guid>(WalletsErrors.AlreadyDepositProcessing),
+          Result.Error(WalletsErrors.AlreadyDepositProcessing.Message),
 
       var status when status.Equals(WalletTransactionStatus.Failed) =>
-          Result.Failure<Guid>(WalletsErrors.AlreadyDepositFailed),
+          Result.Error(WalletsErrors.AlreadyDepositFailed.Message),
 
       var status when status.Equals(WalletTransactionStatus.Reversed) =>
-          Result.Failure<Guid>(WalletsErrors.AlreadyDepositReversed),
+          Result.Error(WalletsErrors.AlreadyDepositReversed.Message),
 
       _ =>
-          Result.Failure<Guid>(WalletsErrors.InvalidStatus)
+          Result.Error(WalletsErrors.InvalidStatus.Message)
     };
   }
 }

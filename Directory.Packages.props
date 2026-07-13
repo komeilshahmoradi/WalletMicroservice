@@ -1,11 +1,13 @@
 <Project>
   <ItemGroup>
-    <!--KO.BuildingBlocks-->
-    <PackageVersion Include="KO.BuildingBlocks.Domain" Version="1.0.5" />
-    <PackageVersion Include="KO.BuildingBlocks.Application" Version="1.0.5" />
-    <PackageVersion Include="KO.BuildingBlocks.Infrastructure" Version="1.0.5" />
-    <!-- Asp.net-->
+    <!-- Transitive -->
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.App" />
+    <!--KO.BuildingBlocks -->
+    <PackageVersion Include="KO.BuildingBlocks.Domain" Version="1.0.6" />
+    <PackageVersion Include="KO.BuildingBlocks.Application" Version="1.0.6" />
+    <PackageVersion Include="KO.BuildingBlocks.Infrastructure" Version="1.0.6" />
+    <!-- .NET -->
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.8" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
@@ -15,7 +17,6 @@
     <PackageVersion Include="Npgsql" Version="10.0.3" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.1" />
     <PackageVersion Include="System.Data.SqlClient" Version="4.9.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.App" />
     <!-- EF Core -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8" />
