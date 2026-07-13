@@ -1,7 +1,7 @@
+using Ardalis.Result;
 using KO.BuildingBlocks.Application.Abstraction.Messaging;
 using KO.BuildingBlocks.Domain.Exceptions;
 using KO.BuildingBlocks.Domain.Repositories;
-using KO.BuildingBlocks.Domain.Results;
 using Microsoft.EntityFrameworkCore;
 using Wallet.Application.Helper;
 using Wallet.Domain.Shared;
@@ -31,7 +31,7 @@ internal sealed class CreateWalletCommandHandler : ICommandHandler<CreateWalletC
 
     if (existingWallet is not null)
     {
-      return Result.Failure<Guid>(WalletsErrors.AlreadyExistsWithCurrency);
+      return Result.Error(WalletsErrors.AlreadyExistsWithCurrency.Message);
     }
 
     var currency = Currency.FromName(request.CurrencyCode);
@@ -47,7 +47,7 @@ internal sealed class CreateWalletCommandHandler : ICommandHandler<CreateWalletC
     }
     catch (DomainException ex)
     {
-      return Result.Failure<Guid>(ex);
+      return Result.Error(ex.Message);
     }
     catch (DbUpdateException ex) when (DatabaseExceptionHelper.IsUniqueViolation(ex, "pk_wallets"))
     {
@@ -56,7 +56,7 @@ internal sealed class CreateWalletCommandHandler : ICommandHandler<CreateWalletC
 
       if (existingWallet is null)
       {
-        return Result.Failure<Guid>(WalletsErrors.IdempotencyStateNotFound);
+        return Result.NotFound(WalletsErrors.IdempotencyStateNotFound.Message);
       }
 
       return Result.Success(existingWallet.Id);
