@@ -20,11 +20,6 @@ public interface IWalletRepository : IRepository<Wallet, Guid>
     Guid idempotencyKey,
     CancellationToken cancellationToken = default);
 
-  Task<Guid?> GetTransactionIdAsync(
-    Guid walletId,
-    Guid idempotencyKey,
-    CancellationToken cancellationToken = default);
-
   Task<Currency> GetCurrencyById(
     Guid id,
     CancellationToken cancellationToken = default);

@@ -5,4 +5,10 @@ namespace Wallet.Domain.Transfers.Repositories;
 public interface ITransferRepository : IRepository<Transfer, Guid>
 {
   Task<Transfer?> GetByIdAndUserIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
+
+  Task<Transfer?> GetByIdempotencyKeyAsync(
+      Guid sourceWalletId,
+      Guid userId,
+      Guid idempotencyKey,
+      CancellationToken cancellationToken = default);
 }
