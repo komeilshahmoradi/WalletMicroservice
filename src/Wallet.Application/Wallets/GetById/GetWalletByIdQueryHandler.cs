@@ -1,3 +1,4 @@
+using Ardalis.Result;
 using KO.BuildingBlocks.Application.Abstraction.Messaging;
 using KO.BuildingBlocks.Domain.Results;
 using Wallet.Domain.Wallets.Repositories;
@@ -18,7 +19,7 @@ internal sealed class GetWalletByIdQueryHandler : IQueryHandler<GetWalletByIdQue
     var wallet = await _walletRepository.GetByIdAsync(request.WalletId, cancellationToken);
     if (wallet is null)
     {
-      return Result.Failure<GetWalletByIdDto>(WalletsErrors.NotFound);
+      return Result.NotFound(WalletsErrors.NotFound.Message);
     }
 
     return Result.Success(new GetWalletByIdDto

@@ -1,7 +1,7 @@
+using Ardalis.Result;
 using KO.BuildingBlocks.Application.Abstraction.Messaging;
 using KO.BuildingBlocks.Domain.Exceptions;
 using KO.BuildingBlocks.Domain.Repositories;
-using KO.BuildingBlocks.Domain.Results;
 using Microsoft.EntityFrameworkCore;
 using Wallet.Application.Helper;
 using Wallet.Domain.Shared;
@@ -28,7 +28,7 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
     var wallet = await _walletRepository.GetByIdAndUserIdAsync(request.WalletId, request.UserId, cancellationToken);
     if (wallet is null)
     {
-      return Result.Failure<Guid>(WalletsErrors.NotFound);
+      return Result.NotFound(WalletsErrors.NotFound.Message);
     }
 
     var existingWalletTransaction = await _walletRepository
@@ -54,11 +54,11 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
     }
     catch (DomainException ex)
     {
-      return Result.Failure<Guid>(ex);
+      return Result.Error(ex.Message);
     }
     catch (DbUpdateConcurrencyException)
     {
-      return Result.Failure<Guid>(WalletsErrors.ConcurrencyConflict);
+      return Result.CriticalError(WalletsErrors.ConcurrencyConflict.Message);
     }
     catch (DbUpdateException ex) when (DatabaseExceptionHelper.IsUniqueViolation(ex, "uq_wallet_transactions_wallet_id_operation_id"))
     {
@@ -67,7 +67,7 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
 
       if (existingWalletTransaction is null)
       {
-        return Result.Failure<Guid>(WalletsErrors.IdempotencyStateNotFound);
+        return Result.NotFound(WalletsErrors.IdempotencyStateNotFound.Message);
       }
 
       return GetWalletTransactionStatus(existingWalletTransaction, request);
@@ -88,7 +88,7 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
         || existingWalletTransaction.Type != WalletTransactionType.Withdraw
         || existingWalletTransaction.Money != money)
     {
-      return Result.Failure<Guid>(WalletsErrors.IdempotencyKeyAlreadyUsed);
+      return Result.Error(WalletsErrors.IdempotencyKeyAlreadyUsed.Message);
     }
 
     return existingWalletTransaction.Status switch
@@ -97,16 +97,16 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
           Result.Success(existingWalletTransaction.Id),
 
       var status when status.Equals(WalletTransactionStatus.Pending) =>
-          Result.Failure<Guid>(WalletsErrors.AlreadyWithdrawProcessing),
+          Result.Error(WalletsErrors.AlreadyWithdrawProcessing.Message),
 
       var status when status.Equals(WalletTransactionStatus.Failed) =>
-          Result.Failure<Guid>(WalletsErrors.AlreadyWithdrawFailed),
+          Result.Error(WalletsErrors.AlreadyWithdrawFailed.Message),
 
       var status when status.Equals(WalletTransactionStatus.Reversed) =>
-          Result.Failure<Guid>(WalletsErrors.AlreadyWithdrawReversed),
+          Result.Error(WalletsErrors.AlreadyWithdrawReversed.Message),
 
       _ =>
-          Result.Failure<Guid>(WalletsErrors.InvalidStatus)
+          Result.Error(WalletsErrors.InvalidStatus.Message)
     };
   }
 }
