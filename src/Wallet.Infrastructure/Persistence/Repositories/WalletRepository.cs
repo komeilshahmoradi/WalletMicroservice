@@ -50,16 +50,4 @@ internal sealed class WalletRepository : EfRepository<Domain.Wallets.Wallet, Gui
       .FirstOrDefaultAsync(x => x.WalletId == walletId && x.OperationId == idempotencyKey, cancellationToken);
     return result;
   }
-
-  public async Task<Guid?> GetTransactionIdAsync(
-    Guid walletId,
-    Guid idempotencyKey,
-    CancellationToken cancellationToken = default)
-  {
-    var result = await _dbContext.Set<WalletTransaction>()
-      .Where(x => x.WalletId == walletId && x.OperationId == idempotencyKey)
-      .Select(x => x.Id)
-      .FirstOrDefaultAsync();
-    return result;
-  }
 }
