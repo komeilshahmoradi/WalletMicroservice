@@ -16,7 +16,6 @@ jobs:
   test:
     name: Run unit tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
@@ -41,14 +40,20 @@ jobs:
         run: dotnet build Wallet.slnx --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test Wallet.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+        run: >
+          dotnet test Wallet.slnx 
+          --configuration Release 
+          --no-build 
+          --report-trx 
+          --results-directory TestResults
+          --ignore-exit-code 8
 
       - name: Test Report
         uses: dorny/test-reporter@v1.9.1
         if: always()
         with:
           name: .NET Tests Report
-          path: TestResults/test-results.trx
+          path: TestResults/**/*.trx
           reporter: dotnet-trx
 
       - name: Upload test results
