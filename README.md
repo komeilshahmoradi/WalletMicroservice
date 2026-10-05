@@ -16,12 +16,3 @@ Wallet microservice with asp.net core 10, Sql Server and using Shared building b
 🔹 Central Package Management (CPM)
 
 🔹 The new SLNX Solution structure
-
-## Structure
-
-- src/Wallet.Api
-- src/Wallet.Application
-- src/Wallet.Domain
-- src/Wallet.Infrastructure
-- tests/Wallet.UnitTests
-- tests/Wallet.IntegrationTests
