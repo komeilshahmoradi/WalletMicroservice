@@ -28,14 +28,14 @@ internal sealed class WalletRepository : EfRepository<Domain.Wallets.Wallet, Gui
     CancellationToken cancellationToken = default)
   {
     var result = await _dbContext.Set<Domain.Wallets.Wallet>()
-      .FirstOrDefaultAsync(x => x.UserId == userId && x.Currency == Currency.FromName(currency), cancellationToken);
+      .FirstOrDefaultAsync(x => x.UserId == userId && x.Balance.Currency == Currency.FromName(currency), cancellationToken);
     return result;
   }
 
   public async Task<Currency> GetCurrencyById(Guid id, CancellationToken cancellationToken = default)
   {
     var result = await _dbContext.Set<Domain.Wallets.Wallet>()
-      .Select(x => new { x.Id, x.Currency })
+      .Select(x => new { x.Id, x.Balance.Currency })
       .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     return result!.Currency;

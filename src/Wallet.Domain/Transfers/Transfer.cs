@@ -98,7 +98,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
     if (destinationWallet.Id != DestinationWalletId)
       throw new InvalidDestinationWalletIdDomainException("Invalid destination wallet.");
 
-    if (sourceWallet.Currency == destinationWallet.Currency && sourceWallet.UserId == destinationWallet.UserId)
+    if (sourceWallet.Balance.Currency == destinationWallet.Balance.Currency && sourceWallet.UserId == destinationWallet.UserId)
     {
       throw new InvalidTransferCurrencyDomainException("Currency of source and destination wallet, for the same user should be different.");
     }
@@ -109,7 +109,7 @@ public sealed class Transfer : AggregateRoot<Guid>, IHasConcurrencyToken
         operationId,
         $"Transfer out {Money.Amount} {Money.Currency} to wallet {DestinationWalletId}.OperationId: {operationId} | Description: {Description}");
 
-    var destinationMoney = ApplyExchangeRate(sourceWallet.Currency, destinationWallet.Currency, SourceWalletId, DestinationWalletId);
+    var destinationMoney = ApplyExchangeRate(sourceWallet.Balance.Currency, destinationWallet.Balance.Currency, SourceWalletId, DestinationWalletId);
 
     destinationWallet.ApplyTransferIn(
         destinationMoney,

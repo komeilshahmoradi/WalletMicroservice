@@ -11,9 +11,5 @@ public sealed class WithdrawCommandValidator : AbstractValidator<WithdrawCommand
 
     RuleFor(x => x.Amount)
         .GreaterThan(0);
-
-    RuleFor(x => x.CurrencyCode)
-        .NotEmpty()
-        .MaximumLength(10);
   }
 }

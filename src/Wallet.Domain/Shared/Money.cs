@@ -1,5 +1,6 @@
 using KO.BuildingBlocks.Domain.Common;
 using Wallet.Domain.Exceptions.WalletDomainException;
+using Wallet.Domain.Wallets;
 
 namespace Wallet.Domain.Shared;
 
@@ -81,7 +82,7 @@ public sealed class Money : ValueObject
       throw new ArgumentNullException(nameof(other));
 
     if (Currency != other.Currency)
-      throw new CurrencyMismatchDomainException("Money currencies must be the same.");
+      throw new CurrencyMismatchDomainException(WalletDomainErrors.CurrencyMismatch);
   }
 
   public override IEnumerable<object?> GetEqualityComponents()

@@ -20,22 +20,22 @@ internal sealed class WalletConfiguration : IEntityTypeConfiguration<Domain.Wall
     builder.Property(wallet => wallet.UserId)
         .IsRequired();
 
-    builder.HasIndex(wallet => new
+    builder.ComplexProperty(wallet => wallet.Balance, balanceBuilder =>
     {
-      wallet.UserId,
-      wallet.Currency
-    }).IsUnique();
+      balanceBuilder.Property(b => b.Currency)
+          .HasConversion(
+              currency => currency.Id,
+              id => Currency.FromValue(id))
+          .HasColumnName("CurrencyId")
+          .IsRequired();
 
-    builder.Property(wallet => wallet.Currency)
-        .HasConversion(
-            currency => currency.Id,
-            id => Currency.FromValue(id))
-        .HasColumnName("CurrencyId")
-        .IsRequired();
+      balanceBuilder.Property(b => b.Amount)
+          .HasColumnType("decimal(18,2)")
+          .HasColumnName("Balance")
+          .IsRequired();
+    });
 
-    builder.Property(wallet => wallet.Balance)
-        .HasColumnType("decimal(18,2)")
-        .IsRequired();
+    builder.HasIndex(w => w.UserId).HasDatabaseName("IX_Wallet_User_Currency");// Change migration manually after add migration.
 
     builder.Property(wallet => wallet.IsActive)
         .IsRequired();

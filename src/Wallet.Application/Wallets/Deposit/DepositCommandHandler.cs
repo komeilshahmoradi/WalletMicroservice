@@ -39,11 +39,10 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
 
     if (existingWalletTransaction is not null)
     {
-      return GetWalletTransactionStatus(existingWalletTransaction, request);
+      return GetWalletTransactionStatus(existingWalletTransaction, request, wallet.Balance);
     }
 
-    var currency = Currency.FromName(request.CurrencyCode);
-    var money = Money.Of(request.Amount, currency);
+    var money = Money.Of(request.Amount, wallet.Balance.Currency);
 
     try
     {
@@ -74,19 +73,17 @@ internal sealed class DepositCommandHandler : ICommandHandler<DepositCommand, Gu
         return Result.NotFound(WalletsErrors.IdempotencyStateNotFound.Message);
       }
 
-      return GetWalletTransactionStatus(existingWalletTransaction, request);
+      return GetWalletTransactionStatus(existingWalletTransaction, request, wallet.Balance);
     }
   }
 
-  private Result<Guid> GetWalletTransactionStatus(WalletTransaction existingWalletTransaction, DepositCommand request)
+  private Result<Guid> GetWalletTransactionStatus(WalletTransaction existingWalletTransaction, DepositCommand request, Money requestMoney)
   {
-    var currency = Currency.FromName(request.CurrencyCode);
-    var money = Money.Of(request.Amount, currency);
 
     if (existingWalletTransaction.WalletId != request.WalletId
         || existingWalletTransaction.OperationId != request.IdempotencyKey
         || existingWalletTransaction.Type != WalletTransactionType.Deposit
-        || existingWalletTransaction.Money != money)
+        || existingWalletTransaction.Money != requestMoney)
     {
       return Result.Error(WalletsErrors.IdempotencyKeyAlreadyUsed.Message);
     }

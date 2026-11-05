@@ -287,7 +287,7 @@ public sealed class CreateTransferCommandHandlerIdempotencyTests
 
     public Task<Currency> GetCurrencyById(Guid id, CancellationToken cancellationToken = default)
     {
-      return Task.FromResult(_wallets[id].Currency);
+      return Task.FromResult(_wallets[id].Balance.Currency);
     }
 
     public Task<WalletTransaction?> GetTransactionByWalletIdAndOperationIdAsync(

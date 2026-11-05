@@ -63,8 +63,7 @@ internal sealed class CreateTransferCommandHandler : ICommandHandler<CreateTrans
         return Result.Error(TransfersErrors.DestinationWalletNotFound.Message);
       }
 
-      var currency = Currency.FromName(request.CurrencyCode);
-      var money = Money.Of(request.Amount, currency);
+      var money = Money.Of(request.Amount, sourceWallet.Balance.Currency);
 
       var transfer = Transfer.Initiate(
           request.UserId,

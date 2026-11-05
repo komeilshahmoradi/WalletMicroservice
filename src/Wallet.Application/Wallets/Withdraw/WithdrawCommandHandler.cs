@@ -36,11 +36,10 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
 
     if (existingWalletTransaction is not null)
     {
-      return GetWalletTransactionStatus(existingWalletTransaction, request);
+      return GetWalletTransactionStatus(existingWalletTransaction, request, wallet.Balance);
     }
 
-    var currency = Currency.FromName(request.CurrencyCode);
-    var money = Money.Of(request.Amount, currency);
+    var money = Money.Of(request.Amount, wallet.Balance.Currency);
 
     try
     {
@@ -70,7 +69,7 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
         return Result.NotFound(WalletsErrors.IdempotencyStateNotFound.Message);
       }
 
-      return GetWalletTransactionStatus(existingWalletTransaction, request);
+      return GetWalletTransactionStatus(existingWalletTransaction, request, wallet.Balance);
     }
     catch
     {
@@ -78,15 +77,12 @@ internal sealed class WithdrawCommandHandler : ICommandHandler<WithdrawCommand, 
     }
   }
 
-  private Result<Guid> GetWalletTransactionStatus(WalletTransaction existingWalletTransaction, WithdrawCommand request)
+  private Result<Guid> GetWalletTransactionStatus(WalletTransaction existingWalletTransaction, WithdrawCommand request, Money requestMoney)
   {
-    var currency = Currency.FromName(request.CurrencyCode);
-    var money = Money.Of(request.Amount, currency);
-
     if (existingWalletTransaction.WalletId != request.WalletId
         || existingWalletTransaction.OperationId != request.IdempotencyKey
         || existingWalletTransaction.Type != WalletTransactionType.Withdraw
-        || existingWalletTransaction.Money != money)
+        || existingWalletTransaction.Money != requestMoney)
     {
       return Result.Error(WalletsErrors.IdempotencyKeyAlreadyUsed.Message);
     }

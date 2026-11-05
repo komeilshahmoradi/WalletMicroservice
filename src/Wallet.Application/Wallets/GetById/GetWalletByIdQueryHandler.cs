@@ -26,8 +26,8 @@ internal sealed class GetWalletByIdQueryHandler : IQueryHandler<GetWalletByIdQue
     {
       Id = wallet.Id,
       UserId = wallet.UserId,
-      Currency = wallet.Currency.Name,
-      Balance = wallet.Balance,
+      Currency = wallet.Balance.Currency.Name,
+      Balance = wallet.Balance.Amount,
       IsActive = wallet.IsActive
     });
   }

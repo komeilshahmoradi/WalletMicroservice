@@ -11,9 +11,7 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
 
   public Guid UserId { get; private set; }
 
-  public Currency Currency { get; private set; }
-
-  public decimal Balance { get; private set; }
+  public Money Balance { get; private set; }
 
   public bool IsActive { get; private set; }
 
@@ -21,7 +19,7 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
 
   private Wallet(Guid id) : base(id)
   {
-    Currency = null!;
+    Balance = null!;
   }
 
   private Wallet(Guid id, Guid userId, Currency currency)
@@ -34,8 +32,7 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
       throw new InvalidCurrencyDomainException("Currency can not be null");
 
     UserId = userId;
-    Currency = currency;
-    Balance = 0;
+    Balance = Money.Of(0, currency);
     IsActive = true;
   }
 
@@ -44,19 +41,13 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
     return new Wallet(Guid.CreateVersion7(), userId, currency);
   }
 
-  public Money GetBalance()
-  {
-    return Money.Of(Balance, Currency);
-  }
-
   public void Deposit(Money money, Guid operationId, string? description = null)
   {
     EnsureActive();
     EnsurePositiveAmount(money);
-    EnsureCurrencyMatches(money);
     EnsureOperationIdIsValid(operationId);
 
-    Balance += money.Amount;
+    Balance = Balance.Add(money);
 
     var transaction = WalletTransaction.CreateDeposit(
         Id,
@@ -71,10 +62,9 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
   {
     EnsureActive();
     EnsurePositiveAmount(money);
-    EnsureCurrencyMatches(money);
     EnsureSufficientBalance(money);
 
-    Balance -= money.Amount;
+    Balance = Balance.Subtract(money);
 
     var transaction = WalletTransaction.CreateWithdraw(
         Id,
@@ -89,10 +79,9 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
   {
     EnsureActive();
     EnsurePositiveAmount(money);
-    EnsureCurrencyMatches(money);
     EnsureSufficientBalance(money);
 
-    Balance -= money.Amount;
+    Balance = Balance.Subtract(money);
 
     var transaction = WalletTransaction.CreateTransferOut(
         Id,
@@ -108,9 +97,8 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
   {
     EnsureActive();
     EnsurePositiveAmount(money);
-    EnsureCurrencyMatches(money);
 
-    Balance += money.Amount;
+    Balance = Balance.Add(money);
 
     var transaction = WalletTransaction.CreateTransferIn(
         Id,
@@ -144,15 +132,9 @@ public sealed class Wallet : AggregateRoot<Guid>, IHasConcurrencyToken
       throw new AmountMustBePositiveDomainException(WalletDomainErrors.AmountMustBePositive);
   }
 
-  private void EnsureCurrencyMatches(Money money)
-  {
-    if (money.Currency != Currency)
-      throw new CurrencyMismatchDomainException(WalletDomainErrors.CurrencyMismatch);
-  }
-
   private void EnsureSufficientBalance(Money money)
   {
-    if (Balance < money.Amount)
+    if (money.IsGreaterThan(Balance))
       throw new InsufficientBalanceDomainException(WalletDomainErrors.InsufficientBalance);
   }
 
