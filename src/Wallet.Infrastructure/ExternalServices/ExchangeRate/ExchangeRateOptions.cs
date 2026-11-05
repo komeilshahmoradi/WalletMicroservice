@@ -2,7 +2,7 @@ namespace Wallet.Infrastructure.ExternalServices.ExchangeRate;
 
 public sealed class ExchangeRateOptions
 {
-  public const string SectionName = "ExternalApis:ExchangeRate";
+  public const string SectionName = "ExternalServices:ExchangeRate";
 
   public string BaseUrl { get; set; } = string.Empty;
   public string USDApiKey { get; set; } = string.Empty;

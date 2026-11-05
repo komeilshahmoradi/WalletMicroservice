@@ -6,3 +6,5 @@ obj/
 *.rsuser
 TestResults/
 coverage/
+/src/Wallet.Api/appsettings.Development.json
+/src/Wallet.Api/appsettings.Development.json
